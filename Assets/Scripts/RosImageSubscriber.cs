@@ -72,6 +72,8 @@ public class RosImageSubscriber : MonoBehaviour
             Texture2D _input = new Texture2D(2, 2);
             ImageConversion.LoadImage(_input, msg.data);
             _input.Apply();
+
+
             SetupTex(_input.width, _input.height);
 
             if (debayerType == DebayerMode.None)
@@ -89,10 +91,9 @@ public class RosImageSubscriber : MonoBehaviour
             debayer.Dispatch(0, _input.width / 2, _input.height / 2, 1);
 
             Destroy(_input);
+            // Resize();
 
-            rawImage.texture = _texture2D;
 
-            Resize();
         }
         catch (System.Exception e)
         {
@@ -134,6 +135,7 @@ public class RosImageSubscriber : MonoBehaviour
             _texture2D.enableRandomWrite = true;
             _texture2D.Create();
             material.SetTexture("_BaseMap", _texture2D);
+            rawImage.texture = _texture2D;
         }
     }
 
