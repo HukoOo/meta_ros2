@@ -72,27 +72,31 @@ public class RosImageSubscriber : MonoBehaviour
             Texture2D _input = new Texture2D(2, 2);
             ImageConversion.LoadImage(_input, msg.data);
             _input.Apply();
-
-
-            SetupTex(_input.width, _input.height);
-
-            if (debayerType == DebayerMode.None)
+            
+            if (material != null)
             {
-                RenderTexture.active = _texture2D;
-                Graphics.Blit(_input, _texture2D);
-                RenderTexture.active = null;
-                return;
+
+                SetupTex(_input.width, _input.height);
+
+                if (debayerType == DebayerMode.None)
+                {
+                    RenderTexture.active = _texture2D;
+                    Graphics.Blit(_input, _texture2D);
+                    RenderTexture.active = null;
+                    return;
+                }
+
+                // debayer the image using compute shader
+                if (debayer != null)
+                {
+                    debayer.SetInt("mode", (int)debayerType);
+                    debayer.SetTexture(0, "Input", _input);
+                    debayer.SetTexture(0, "Result", _texture2D);
+                    debayer.Dispatch(0, _input.width / 2, _input.height / 2, 1);
+
+                }
             }
-
-            // debayer the image using compute shader
-            debayer.SetInt("mode", (int)debayerType);
-            debayer.SetTexture(0, "Input", _input);
-            debayer.SetTexture(0, "Result", _texture2D);
-            debayer.Dispatch(0, _input.width / 2, _input.height / 2, 1);
-
             Destroy(_input);
-            // Resize();
-
 
         }
         catch (System.Exception e)
