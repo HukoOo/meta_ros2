@@ -18,7 +18,6 @@ public class TFPublisher : MonoBehaviour
     public string handFrameLeft = "hand_left";
     public string handFrameRight = "hand_right";
     public string tfTopic = "tf";
-    public string frameId = "world";
     public float publishHz = 30f;
     public TextMeshPro textMesh;       // 3D TextMeshPro 오브젝트
     float publishInterval;
@@ -111,6 +110,6 @@ public class TFPublisher : MonoBehaviour
             if (tfMessageMsg.transforms[i].transform.rotation.From<FLU>().Equals(default))
                 tfMessageMsg.transforms[i].transform.rotation.w = 1;
 
-        ros.Publish(tfTopic, tfMessageMsg);
+        // ros.Publish(tfTopic, tfMessageMsg);
     }
 }

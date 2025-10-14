@@ -34,7 +34,7 @@ public class RosImageSubscriber : MonoBehaviour
         None = -1,
     }
     public DebayerMode debayerType = DebayerMode.GRBG;
-    public string topicName;
+    public string topicName = "/camera/camera/color/image_raw/compressed";
 
     void Start()
     {
