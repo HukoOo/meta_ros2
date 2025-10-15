@@ -106,10 +106,8 @@ public class RosWrenchSubscriber : MonoBehaviour
         if (textMesh != null)
             textMesh.text = $"{msg.wrench.force.x:F2}\n{msg.wrench.force.y:F2}\n{msg.wrench.force.z:F2}";
 
-        // Force and direction
         Vector3 force = new Vector3((float)msg.wrench.force.x, (float)msg.wrench.force.y, (float)msg.wrench.force.z);
         float magnitude = force.magnitude * scaleFactor;
-
         Vector3 forceDir = force.normalized;
 
         // === Arrow parameter ===
@@ -118,12 +116,11 @@ public class RosWrenchSubscriber : MonoBehaviour
         float tipLength = magnitude * tipRatio;
         float tipRadius = tipWidth / 2f;
 
-        // === Create vertex lists ===
         List<Vector3> vertices = new List<Vector3>();
         List<int> triangles = new List<int>();
         List<Color> colors = new List<Color>();
 
-        // Stem (orange)
+        // Stem
         for (int i = 0; i < radialSegments; i++)
         {
             float angle = (float)i / radialSegments * Mathf.PI * 2f;
@@ -146,7 +143,7 @@ public class RosWrenchSubscriber : MonoBehaviour
             triangles.Add(i0); triangles.Add(i3); triangles.Add(i1);
         }
 
-        // Tip (red)
+        // Tip
         int tipBaseStart = vertices.Count;
         for (int i = 0; i < radialSegments; i++)
         {
@@ -168,27 +165,24 @@ public class RosWrenchSubscriber : MonoBehaviour
             triangles.Add(i0); triangles.Add(i1); triangles.Add(apexIndex);
         }
 
-        // Apply rotation
-        Quaternion rot = Quaternion.FromToRotation(Vector3.right, forceDir);
-        for (int i = 0; i < vertices.Count; i++)
-            vertices[i] = rot * vertices[i];
+        // ✅ 화살표 GameObject 자체를 왼손의 위치/회전에 맞춰 이동
+        transform.position = leftHand.position;
+        transform.rotation = leftHand.rotation * Quaternion.FromToRotation(Vector3.right, forceDir);
 
-        // Assign to mesh
+        // ✅ 정점은 로컬 기준으로만 계산 (startPoint = Vector3.zero)
         Mesh mesh = new Mesh();
         mesh.SetVertices(vertices);
         mesh.SetTriangles(triangles, 0);
-        mesh.SetColors(colors);  // 🎨 정점 색상 적용
+        mesh.SetColors(colors);
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
 
-        // Assign to filter/renderer
         GetComponent<MeshFilter>().mesh = mesh;
 
         var meshRenderer = GetComponent<MeshRenderer>();
         if (meshRenderer == null)
             meshRenderer = gameObject.AddComponent<MeshRenderer>();
 
-        // ✨ Vertex Color를 지원하는 셰이더 사용
         meshRenderer.material = new Material(vertexShader);
     }
 }

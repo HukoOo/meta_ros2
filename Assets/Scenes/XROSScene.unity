@@ -6799,13 +6799,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RosWrenchSubscriber
   topicName: /aft_sensor1/wrench
   textMesh: {fileID: 490478142}
-  leftHand: {fileID: 0}
-  rightHand: {fileID: 0}
-  scaleFactor: 2
-  stemWidth: 0.5
-  tipWidth: 2
+  leftHand: {fileID: 313429320}
+  rightHand: {fileID: 1681873062}
+  scaleFactor: 0.05
+  stemWidth: 0.01
+  tipWidth: 0.05
   tipRatio: 0.2
   radialSegments: 12
+  vertexShader: {fileID: 4800000, guid: d27c4593bd2c99258b8d0d2d9cf830da, type: 3}
+  stemColor: {r: 0.9245283, g: 0.91580635, b: 0.9027234, a: 1}
+  tipColor: {r: 1, g: 0, b: 0.019788265, a: 1}
 --- !u!4 &1186159871
 Transform:
   m_ObjectHideFlags: 0
@@ -11996,7 +11999,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1996565273}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 242}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
