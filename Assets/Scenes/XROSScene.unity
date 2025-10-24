@@ -4299,7 +4299,7 @@ MonoBehaviour:
   centerEyeAnchor: {fileID: 0}
   leftHandAnchor: {fileID: 313429320}
   rightHandAnchor: {fileID: 1681873062}
-  rootFrame: vr_world
+  rootFrame: world
   headsetFrame: hmd
   handFrameLeft: hand_left
   handFrameRight: hand_right
@@ -7425,7 +7425,7 @@ MonoBehaviour:
   centerEyeAnchor: {fileID: 0}
   textMesh: {fileID: 100777745}
   topicName: hmd_pose
-  frameId: vr_world
+  frameId: world
   publishHz: 60
 --- !u!4 &589113492
 Transform:
