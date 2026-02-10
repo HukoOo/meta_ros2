@@ -14,6 +14,12 @@ using UnityEngine.Experimental.Rendering;
 /// </summary>
 public class RosImageSubscriber : MonoBehaviour
 {
+    // ▼ 추가: 목표 출력 해상도(원본보다 작게)
+    [Header("Downscale Output")]
+    public int targetWidth = 320;
+    public int targetHeight = 180;   // 16:9 예시 (원본 비율에 맞게 조정)
+// ▼ compressed는 디베이어 불필요
+    
     ROSConnection _ros;
     public TextMeshPro textMesh;   
     
@@ -34,7 +40,7 @@ public class RosImageSubscriber : MonoBehaviour
         None = -1,
     }
     public DebayerMode debayerType = DebayerMode.GRBG;
-    public string topicName;
+    public string topicName = "/camera/camera/color/image_raw/compressed";
 
     void Start()
     {
@@ -63,37 +69,73 @@ public class RosImageSubscriber : MonoBehaviour
             _ros.Unsubscribe(topicName);
     }
 
-    void OnCompressed(CompressedImageMsg msg)
+    // void OnCompressed(CompressedImageMsg msg)
+    // {
+
+    //     try
+    //     {   
+    //         if (textMesh != null)
+    //             textMesh.text = msg.header.stamp.sec.ToString() + "." + msg.header.stamp.nanosec.ToString();
+
+    //         Texture2D _input = new Texture2D(2, 2);
+    //         ImageConversion.LoadImage(_input, msg.data);
+    //         _input.Apply();
+            
+    //         if (material != null)
+    //         {
+
+    //             SetupTex(_input.width, _input.height);
+
+    //             if (debayerType == DebayerMode.None)
+    //             {
+    //                 RenderTexture.active = _texture2D;
+    //                 Graphics.Blit(_input, _texture2D);
+    //                 RenderTexture.active = null;
+    //                 return;
+    //             }
+
+    //             // debayer the image using compute shader
+    //             if (debayer != null)
+    //             {
+    //                 debayer.SetInt("mode", (int)debayerType);
+    //                 debayer.SetTexture(0, "Input", _input);
+    //                 debayer.SetTexture(0, "Result", _texture2D);
+    //                 debayer.Dispatch(0, _input.width / 2, _input.height / 2, 1);
+
+    //             }
+    //         }
+    //         Destroy(_input);
+
+    //     }
+    //     catch (System.Exception e)
+    //     {
+    //         Debug.LogError(e);
+    //     }
+    // }
+        void OnCompressed(CompressedImageMsg msg)
     {
-
         try
-        {   textMesh.text = msg.header.stamp.sec.ToString() + "." + msg.header.stamp.nanosec.ToString();
+        {
+            if (textMesh != null)
+                textMesh.text = $"{msg.header.stamp.sec}.{msg.header.stamp.nanosec}";
 
-            Texture2D _input = new Texture2D(2, 2);
-            ImageConversion.LoadImage(_input, msg.data);
-            _input.Apply();
+            // ▼ 텍스처 재활용: 클래스 멤버로 유지해서 매 프레임 new 방지
+            // (여기선 간단히 보여주려고 local로 생성)
+            Texture2D inputTex = new Texture2D(2, 2, TextureFormat.RGB24, false);
+            // markNonReadable:true로 CPU 메모리 즉시 해제 → GC/메모리 압박 감소
+            ImageConversion.LoadImage(inputTex, msg.data, markNonReadable: true);
 
+            // ▼ 출력용 작은 RT 준비
+            SetupTex(targetWidth, targetHeight);
 
-            SetupTex(_input.width, _input.height);
+            // ▼ 단순 스케일 Blit (가장 빠름)
+            Graphics.Blit(inputTex, _texture2D);
 
-            if (debayerType == DebayerMode.None)
-            {
-                RenderTexture.active = _texture2D;
-                Graphics.Blit(_input, _texture2D);
-                RenderTexture.active = null;
-                return;
-            }
+            // ▼ UI에 연결(한 번만 하면 됨. 이미 연결돼 있으면 생략)
+            if (rawImage.texture != _texture2D)
+                rawImage.texture = _texture2D;
 
-            // debayer the image using compute shader
-            debayer.SetInt("mode", (int)debayerType);
-            debayer.SetTexture(0, "Input", _input);
-            debayer.SetTexture(0, "Result", _texture2D);
-            debayer.Dispatch(0, _input.width / 2, _input.height / 2, 1);
-
-            Destroy(_input);
-            // Resize();
-
-
+            Destroy(inputTex);
         }
         catch (System.Exception e)
         {
@@ -127,16 +169,35 @@ public class RosImageSubscriber : MonoBehaviour
         _Img.localScale = new Vector3(width, 1, height);
     }
 
+    // protected virtual void SetupTex(int width = 2, int height = 2)
+    // {
+    //     if (_texture2D == null)
+    //     {
+    //         _texture2D = new RenderTexture(width, height, 0, GraphicsFormat.R8G8B8A8_UNorm);
+    //         _texture2D.enableRandomWrite = true;
+    //         _texture2D.Create();
+    //         material.SetTexture("_BaseMap", _texture2D);
+    //         rawImage.texture = _texture2D;
+    //     }
+    // }
+
     protected virtual void SetupTex(int width = 2, int height = 2)
     {
-        if (_texture2D == null)
-        {
-            _texture2D = new RenderTexture(width, height, 0, GraphicsFormat.R8G8B8A8_UNorm);
-            _texture2D.enableRandomWrite = true;
-            _texture2D.Create();
+        // 이미 존재하고 크기가 같으면 재사용
+        if (_texture2D != null && _texture2D.width == width && _texture2D.height == height)
+            return;
+
+        if (_texture2D != null) _texture2D.Release();
+
+        _texture2D = new RenderTexture(width, height, 0, GraphicsFormat.R8G8B8A8_UNorm);
+        _texture2D.enableRandomWrite = false; // Blit만 쓰면 random write 불필요
+        _texture2D.Create();
+
+        if (material != null)
             material.SetTexture("_BaseMap", _texture2D);
+
+        if (rawImage != null)
             rawImage.texture = _texture2D;
-        }
     }
 
     /// <summary>

@@ -11,11 +11,11 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 05d394ae2a81edd4cbc3c51917e766e3, type: 3}
   m_Name: OculusProjectConfig
-  m_EditorClassIdentifier: Oculus.VR.Editor::OVRProjectConfig
+  m_EditorClassIdentifier: 
   targetDeviceTypes: 02000000030000000400000005000000
   allowOptional3DofHeadTracking: 0
   handTrackingSupport: 1
-  handTrackingFrequency: 0
+  handTrackingFrequency: 2
   handTrackingVersion: 2
   anchorSupport: 0
   sharedAnchorSupport: 0
@@ -23,7 +23,7 @@ MonoBehaviour:
   trackedKeyboardSupport: 0
   bodyTrackingSupport: 0
   faceTrackingSupport: 0
-  eyeTrackingSupport: 0
+  eyeTrackingSupport: 1
   virtualKeyboardSupport: 0
   colocationSessionSupport: 0
   sceneSupport: 0
